@@ -1,3 +1,4 @@
 # TaskApex
 TaskApex – A responsive, mobile-friendly task manager web app with month/week views, task alarms with snooze/dismiss, progress tracking via a doughnut chart (Chart.js), and local storage persistence. Built with vanilla JS, HTML, and CSS.
-can access online -- url -- https://taskappex.netlify.app/
+
+Can access online -- url -- "https://taskappex.netlify.app/"
