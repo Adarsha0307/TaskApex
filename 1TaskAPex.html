@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TaskApex - Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f39c12;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+            --border-color: #dee2e6;
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        html {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            transition: all 0.3s ease;
+            padding-top: var(--safe-area-top);
+            padding-bottom: var(--safe-area-bottom);
+            overflow-x: hidden;
+        }
+
+        /* Welcome Page Styles */
+        #welcome-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: -webkit-fill-available;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            padding-top: calc(2rem + var(--safe-area-top));
+            padding-bottom: calc(2rem + var(--safe-area-bottom));
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        #welcome-page h1 {
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            line-height: 1.2;
+        }
+
+        #welcome-page p {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        #welcome-page button {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+            padding: clamp(0.8rem, 4vw, 1rem) clamp(1.5rem, 6vw, 2.5rem);
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            min-height: 48px;
+            touch-action: manipulation;
+        }
+
+        #welcome-page button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main App Styles - Initially Hidden */
+        #app-container {
+            display: none;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+
+        /* Header Styles */
+        header {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 1rem clamp(1rem, 3vw, 2rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: calc(1rem + var(--safe-area-top));
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: clamp(1.4rem, 5vw, 1.8rem);
+            white-space: nowrap;
+        }
+
+        .logo i {
+            color: var(--accent-color);
+            font-size: clamp(1.4rem, 5vw, 1.8rem);
+        }
+
+        .month-week-selector {
+            display: flex;
+            gap: clamp(0.5rem, 2vw, 1rem);
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .selector-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .selector-group label {
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            white-space: nowrap;
+        }
+
+        select {
+            padding: 0.5rem 0.8rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            background: white;
+            color: var(--dark-color);
+            cursor: pointer;
+            min-height: 40px;
+            min-width: 100px;
+            touch-action: manipulation;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .date-display {
+            font-weight: bold;
+            color: var(--primary-color);
+            background: var(--light-color);
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            white-space: nowrap;
+            text-align: center;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Current Period Display */
+        .period-display {
+            font-weight: bold;
+            color: var(--secondary-color);
+            background: var(--light-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            text-align: center;
+            margin-top: 0.5rem;
+            grid-column: 1 / -1;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: clamp(1rem, 3vw, 2rem);
+            padding: clamp(1rem, 3vw, 2rem);
+            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 80px - var(--safe-area-top));
+        }
+
+        /* Today's Tasks Section */
+        .today-tasks {
+            background: white;
+            border-radius: 15px;
+            padding: clamp(1rem, 3vw, 1.5rem);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            overflow-y: auto;
+            max-height: 70vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-header h2 {
+            color: var(--primary-color);
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .add-task-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: clamp(36px, 10vw, 40px);
+            height: clamp(36px, 10vw, 40px);
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            min-height: 36px;
+            min-width: 36px;
+            touch-action: manipulation;
+        }
+
+        .add-task-btn:hover {
+            background: #27ae60;
+            transform: rotate(90deg);
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: clamp(0.5rem, 2vw, 1rem);
+            padding: clamp(0.8rem, 2vw, 1rem);
+            border-radius: 10px;
+            background: var(--light-color);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+            touch-action: manipulation;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-number {
+            background: var(--primary-color);
+            color: white;
+            width: clamp(28px, 8vw, 30px);
+            height: clamp(28px, 8vw, 30px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        .time-input {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            min-width: 90px;
+            cursor: pointer;
+            flex-shrink: 0;
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        .delete-task {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: clamp(28px, 8vw, 30px);
+            height: clamp(28px, 8vw, 30px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            touch-action: manipulation;
+            min-height: 28px;
+            min-width: 28px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--gray-color);
+        }
+
+        .empty-state i {
+            font-size: clamp(2.5rem, 10vw, 3rem);
+            margin-bottom: 1rem;
+            color: var(--border-color);
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+        }
+
+        .empty-state p {
+            font-size: clamp(0.9rem, 3vw, 1rem);
+        }
+
+        /* Task Completion Section */
+        .task-completion {
+            background: white;
+            border-radius: 15px;
+            padding: clamp(1rem, 3vw, 1.5rem);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            min-height: 400px;
+            position: relative;
+        }
+
+        .completion-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .completion-header h2 {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .completion-header p {
+            font-size: clamp(0.9rem, 3vw, 1rem);
+        }
+
+        .completion-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            min-height: 300px;
+        }
+
+        .completion-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--gray-color);
+        }
+
+        .completion-item {
+            background: var(--light-color);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .completion-item:hover {
+            transform: scale(1.05);
+        }
+
+        .checkbox-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: clamp(22px, 6vw, 25px);
+            height: clamp(22px, 6vw, 25px);
+            cursor: pointer;
+            accent-color: var(--success-color);
+            touch-action: manipulation;
+        }
+
+        .task-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            line-height: 1.3;
+        }
+
+        .task-time {
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            color: var(--gray-color);
+        }
+
+        .alarm-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            left: 20px;
+            background: var(--danger-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+            display: none;
+            z-index: 1000;
+            animation: pulse 1s infinite;
+            max-width: calc(100% - 40px);
+            margin: 0 auto;
+        }
+
+        .alarm-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .alarm-message {
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            line-height: 1.4;
+        }
+
+        .alarm-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Progress Report Section */
+        .progress-report {
+            background: white;
+            border-radius: 15px;
+            padding: clamp(1rem, 3vw, 1.5rem);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--light-color);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            font-weight: bold;
+            color: var(--primary-color);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            color: var(--gray-color);
+            margin-top: 0.3rem;
+        }
+
+        .chart-container {
+            height: clamp(200px, 40vh, 250px);
+            margin-top: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            color: var(--gray-color);
+            border-top: 1px solid var(--border-color);
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            padding-bottom: calc(1.5rem + var(--safe-area-bottom));
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .today-tasks {
+                max-height: 60vh;
+            }
+
+            .task-completion {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+                padding: 1rem;
+                padding-top: calc(1rem + var(--safe-area-top));
+            }
+
+            .month-week-selector {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+
+            .selector-group {
+                justify-content: space-between;
+            }
+
+            select {
+                flex: 1;
+                max-width: 100%;
+            }
+
+            .date-display {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .section-header h2 {
+                min-width: auto;
+            }
+
+            .completion-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .task-item {
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto;
+                gap: 0.5rem;
+            }
+
+            .task-number {
+                grid-row: 1 / 3;
+            }
+
+            .task-input {
+                grid-column: 2;
+                grid-row: 1;
+                font-size: 1rem;
+            }
+
+            .time-input {
+                grid-column: 2;
+                grid-row: 2;
+                font-size: 0.9rem;
+                min-width: 120px;
+            }
+
+            .delete-task {
+                grid-column: 3;
+                grid-row: 1 / 3;
+            }
+
+            .alarm-indicator {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: calc(100% - 20px);
+                padding: 0.8rem;
+            }
+
+            .alarm-buttons {
+                justify-content: center;
+            }
+
+            .alarm-buttons button {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #welcome-page {
+                padding: 1.5rem;
+                padding-top: calc(1.5rem + var(--safe-area-top));
+                padding-bottom: calc(1.5rem + var(--safe-area-bottom));
+            }
+
+            #welcome-page h1 {
+                font-size: 2rem;
+            }
+
+            #welcome-page p {
+                font-size: 1rem;
+            }
+
+            .logo h1 {
+                font-size: 1.4rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .progress-stats {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .task-item {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+
+            .task-number {
+                grid-row: 1;
+                justify-self: start;
+                margin-bottom: 0.5rem;
+            }
+
+            .task-input {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .time-input {
+                grid-column: 1;
+                grid-row: 3;
+                width: 100%;
+                max-width: 150px;
+            }
+
+            .delete-task {
+                grid-column: 1;
+                grid-row: 1;
+                justify-self: end;
+                align-self: start;
+            }
+
+            .alarm-content {
+                gap: 0.5rem;
+            }
+
+            .alarm-buttons {
+                flex-direction: column;
+            }
+
+            .alarm-buttons button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .selector-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.3rem;
+            }
+
+            select {
+                width: 100%;
+            }
+        }
+
+        /* Task Status Colors */
+        .task-completed {
+            border-left-color: var(--success-color);
+            opacity: 0.7;
+        }
+
+        .task-overdue {
+            border-left-color: var(--danger-color);
+        }
+
+        /* Add Task Instructions */
+        .add-task-instructions {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6f7ff 100%);
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: clamp(1rem, 3vw, 1.5rem);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-task-instructions i {
+            color: var(--primary-color);
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            margin-bottom: 1rem;
+        }
+
+        .instructions-text {
+            color: var(--dark-color);
+            font-size: clamp(0.85rem, 3vw, 0.95rem);
+            line-height: 1.4;
+        }
+
+        /* Test Alarm Button */
+        .test-alarm-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            min-height: 40px;
+            touch-action: manipulation;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .test-alarm-btn:hover {
+            background: #e67e22;
+        }
+
+        .alarm-snooze-btn,
+        #dismiss-alarm {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+            min-height: 40px;
+            touch-action: manipulation;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .alarm-snooze-btn:hover,
+        #dismiss-alarm:hover {
+            background: #5a67d8;
+        }
+
+        #dismiss-alarm {
+            background: var(--danger-color);
+        }
+
+        #dismiss-alarm:hover {
+            background: #c0392b;
+        }
+
+        /* Safe area adjustments for notch phones */
+        @supports (padding: max(0px)) {
+
+            body,
+            #welcome-page,
+            header,
+            footer {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+            }
+
+            .alarm-indicator {
+                left: max(20px, env(safe-area-inset-left));
+                right: max(20px, env(safe-area-inset-right));
+                max-width: calc(100% - max(40px, env(safe-area-inset-left) + env(safe-area-inset-right)));
+            }
+        }
+
+        /* Prevent zoom on mobile inputs */
+        @media screen and (max-width: 768px) {
+
+            input,
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Improved touch targets */
+        button,
+        .task-item,
+        .completion-item,
+        select,
+        .time-input {
+            min-height: 44px;
+        }
+
+        /* Hide scrollbars but keep functionality */
+        .today-tasks::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .today-tasks::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .today-tasks::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .today-tasks::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Loading animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task-item,
+        .completion-item,
+        .stat-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Welcome Page -->
+    <div id="welcome-page">
+        <i class="fas fa-tasks" style="font-size: clamp(3rem, 15vw, 5rem); margin-bottom: 2rem;"></i>
+        <h1>Welcome to TaskAPex</h1>
+        <p>Your ultimate task management solution. Start fresh and create your own tasks according to your needs.</p>
+        <button id="enter-app">Start Creating Tasks <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-mountain"></i>
+                <h1>TaskAPex</h1>
+            </div>
+
+            <div class="month-week-selector">
+                <div class="selector-group">
+                    <label for="month-select">Month:</label>
+                    <select id="month-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <div class="selector-group">
+                    <label for="week-select">Week:</label>
+                    <select id="week-select">
+                        <option value="1">Week 1</option>
+                        <option value="2">Week 2</option>
+                        <option value="3">Week 3</option>
+                        <option value="4">Week 4</option>
+                        <option value="5">Week 5</option>
+                    </select>
+                </div>
+
+                <!-- Removed date display as requested -->
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Today's Tasks Column -->
+            <section class="today-tasks">
+                <div class="section-header">
+                    <h2><i class="fas fa-list-check"></i> Today's Tasks</h2>
+                    <button class="add-task-btn" id="add-task-btn" title="Add New Task">+</button>
+                </div>
+
+                <div class="period-display" id="period-display">
+                    <!-- Month and Week will be displayed here -->
+                </div>
+
+                <div class="add-task-instructions">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="instructions-text">
+                        <strong>No tasks yet!</strong> Click the <span
+                            style="color: var(--success-color); font-weight: bold;">+ button</span> above to add your
+                        first task.<br>
+                        Add as many tasks as you need - unlimited!
+                    </div>
+                    <button class="test-alarm-btn" id="test-alarm-btn">
+                        <i class="fas fa-bell"></i> Test Alarm Sound
+                    </button>
+                </div>
+
+                <div class="tasks-list" id="tasks-list">
+                    <!-- Task items will be dynamically added here -->
+                </div>
+
+                <!-- Empty State (shown when no tasks) -->
+                <div class="empty-state" id="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No Tasks Created Yet</h3>
+                    <p>Start by adding your first task using the + button above.</p>
+                </div>
+            </section>
+
+            <!-- Task Completion Section -->
+            <section class="task-completion">
+                <div class="completion-header">
+                    <h2><i class="fas fa-calendar-check"></i> Task Completion</h2>
+                    <p>Tick the box when task is completed</p>
+                </div>
+                <div class="completion-grid" id="completion-grid">
+                    <!-- Empty state for completion grid -->
+                    <div class="completion-empty" id="completion-empty">
+                        <i class="fas fa-tasks" style="font-size: clamp(2rem, 8vw, 2.5rem); margin-bottom: 1rem;"></i>
+                        <h3>No Tasks to Complete</h3>
+                        <p>Tasks will appear here once you add them in the left column.</p>
+                    </div>
+                    <!-- Completion items will be dynamically added here -->
+                </div>
+
+                <!-- Alarm Indicator -->
+                <div class="alarm-indicator" id="alarm-indicator">
+                    <div class="alarm-content">
+                        <div class="alarm-message" id="alarm-message">
+                            <i class="fas fa-bell"></i>
+                            <span>Task Alarm! Complete your task!</span>
+                        </div>
+                        <div class="alarm-buttons">
+                            <button class="alarm-snooze-btn" id="snooze-alarm">
+                                <i class="fas fa-clock"></i> Snooze (5 min)
+                            </button>
+                            <button id="dismiss-alarm">
+                                <i class="fas fa-check"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Report Section -->
+            <section class="progress-report">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Progress Report</h2>
+                </div>
+
+                <div class="progress-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="completed-tasks">0</div>
+                        <div class="stat-label">Tasks Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-tasks">0</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="completion-rate">0%</div>
+                        <div class="stat-label">Completion Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pending-tasks">0</div>
+                        <div class="stat-label">Pending Tasks</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="progress-chart"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><b><i>| Developed by ADARSHA B U|</i></b></p>
+            <p>TaskAPex © 2023 | Your Productivity Partner | </p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const welcomePage = document.getElementById('welcome-page');
+        const appContainer = document.getElementById('app-container');
+        const enterAppBtn = document.getElementById('enter-app');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const tasksList = document.getElementById('tasks-list');
+        const emptyState = document.getElementById('empty-state');
+        const completionGrid = document.getElementById('completion-grid');
+        const completionEmpty = document.getElementById('completion-empty');
+        const alarmIndicator = document.getElementById('alarm-indicator');
+        const alarmMessage = document.getElementById('alarm-message');
+        const dismissAlarmBtn = document.getElementById('dismiss-alarm');
+        const snoozeAlarmBtn = document.getElementById('snooze-alarm');
+        const testAlarmBtn = document.getElementById('test-alarm-btn');
+        const monthSelect = document.getElementById('month-select');
+        const weekSelect = document.getElementById('week-select');
+        const periodDisplay = document.getElementById('period-display');
+
+        // Stats elements
+        const completedTasksElement = document.getElementById('completed-tasks');
+        const totalTasksElement = document.getElementById('total-tasks');
+        const completionRateElement = document.getElementById('completion-rate');
+        const pendingTasksElement = document.getElementById('pending-tasks');
+
+        // Application State
+        let tasks = [];
+        let taskIdCounter = 1;
+        let alarmTimeouts = {};
+        let currentAlarmTask = null;
+        let alarmAudioContext = null;
+        let alarmAudio = null;
+        let alarmInterval = null;
+        let currentMonth = null;
+        let currentWeek = null;
+
+        // Initialize the app
+        function initApp() {
+            // Set current month (0-indexed in JavaScript, so add 1)
+            const now = new Date();
+            currentMonth = now.getMonth() + 1;
+            monthSelect.value = currentMonth;
+
+            // Calculate current week of the month
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const pastDaysOfMonth = (now - firstDay) / 86400000;
+            currentWeek = Math.ceil((pastDaysOfMonth + firstDay.getDay() + 1) / 7);
+            weekSelect.value = Math.min(currentWeek, 5); // Max 6 weeks
+
+            // Update period display
+            updatePeriodDisplay();
+
+            // Load tasks for current month/week
+            loadTasksForCurrentPeriod();
+
+            // Show/hide empty state based on tasks
+            updateEmptyState();
+
+            // Initialize progress chart
+            initProgressChart();
+
+            // Update stats
+            updateStats();
+
+            // Set up alarm checks
+            setInterval(checkAlarms, 30000); // Check every 30 seconds
+
+            // Request notification permission
+            requestNotificationPermission();
+
+            // Adjust for mobile viewport
+            adjustForMobile();
+        }
+
+        // Generate a unique key for month/week combination
+        function getPeriodKey(month, week) {
+            return `month_${month}_week_${week}`;
+        }
+
+        // Get current period key
+        function getCurrentPeriodKey() {
+            return getPeriodKey(currentMonth, currentWeek);
+        }
+
+        // Load tasks for current month/week
+        function loadTasksForCurrentPeriod() {
+            const periodKey = getCurrentPeriodKey();
+
+            // Load all tasks from localStorage
+            const allTasksData = localStorage.getItem('taskApexAllTasks');
+            const allTasks = allTasksData ? JSON.parse(allTasksData) : {};
+
+            // Get tasks for current period
+            tasks = allTasks[periodKey] || [];
+
+            // Load taskIdCounter for current period
+            const counterKey = `taskIdCounter_${periodKey}`;
+            const savedCounter = localStorage.getItem(counterKey);
+            taskIdCounter = savedCounter ? parseInt(savedCounter) : 1;
+        }
+
+        // Save tasks for current month/week
+        function saveTasksForCurrentPeriod() {
+            const periodKey = getCurrentPeriodKey();
+
+            // Load all tasks from localStorage
+            const allTasksData = localStorage.getItem('taskApexAllTasks');
+            const allTasks = allTasksData ? JSON.parse(allTasksData) : {};
+
+            // Update tasks for current period
+            allTasks[periodKey] = tasks;
+
+            // Save all tasks back to localStorage
+            localStorage.setItem('taskApexAllTasks', JSON.stringify(allTasks));
+
+            // Save taskIdCounter for current period
+            const counterKey = `taskIdCounter_${periodKey}`;
+            localStorage.setItem(counterKey, taskIdCounter.toString());
+
+            // Also clear alarms for deleted tasks
+            clearStaleAlarms();
+        }
+
+        // Clear alarms for tasks that no longer exist
+        function clearStaleAlarms() {
+            // Get all period keys
+            const allTasksData = localStorage.getItem('taskApexAllTasks');
+            const allTasks = allTasksData ? JSON.parse(allTasksData) : {};
+
+            // Collect all task IDs that exist
+            const existingTaskIds = new Set();
+            Object.values(allTasks).forEach(periodTasks => {
+                periodTasks.forEach(task => {
+                    existingTaskIds.add(task.id);
+                });
+            });
+
+            // Clear alarms for non-existing tasks
+            Object.keys(alarmTimeouts).forEach(taskId => {
+                if (!existingTaskIds.has(parseInt(taskId))) {
+                    clearTimeout(alarmTimeouts[taskId]);
+                    delete alarmTimeouts[taskId];
+                }
+            });
+        }
+
+        // Update period display
+        function updatePeriodDisplay() {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+            const monthIndex = currentMonth - 1;
+            const monthName = monthNames[monthIndex];
+
+            periodDisplay.textContent = `${monthName} - Week ${currentWeek}`;
+        }
+
+        // Adjust layout for mobile devices
+        function adjustForMobile() {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                // Force redraw to fix mobile rendering issues
+                setTimeout(() => {
+                    document.body.style.height = window.innerHeight + 'px';
+                    if (appContainer.style.display === 'block') {
+                        appContainer.style.height = window.innerHeight + 'px';
+                    }
+                }, 100);
+
+                // Prevent zoom on focus
+                const inputs = document.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', () => {
+                        window.scrollTo(0, 0);
+                        document.body.style.zoom = "100%";
+                    });
+                });
+            }
+        }
+
+        // Request notification permission
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission().then(permission => {
+                    console.log("Notification permission:", permission);
+                });
+            }
+        }
+
+        // Update empty state visibility
+        function updateEmptyState() {
+            if (tasks.length === 0) {
+                emptyState.style.display = 'block';
+                completionEmpty.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                completionEmpty.style.display = 'none';
+            }
+        }
+
+        // Get the next sequential task number (1, 2, 3, etc.)
+        function getNextTaskNumber() {
+            if (tasks.length === 0) {
+                return 1; // Start from 1 when no tasks exist
+            }
+
+            // Find the highest task number in existing tasks
+            const taskNumbers = tasks.map(task => {
+                const match = task.text.match(/Task (\d+)/);
+                return match ? parseInt(match[1]) : 0;
+            });
+
+            const maxNumber = Math.max(...taskNumbers, 0);
+            return maxNumber + 1;
+        }
+
+        // Render tasks to the UI
+        function renderTasks() {
+            // Clear the task lists
+            tasksList.innerHTML = '';
+            completionGrid.innerHTML = '';
+
+            // Show empty state if no tasks
+            if (tasks.length === 0) {
+                completionGrid.appendChild(completionEmpty);
+                completionEmpty.style.display = 'block';
+                updateEmptyState();
+                return;
+            }
+
+            // Hide empty state
+            completionEmpty.style.display = 'none';
+
+            // Render each task
+            tasks.forEach((task, index) => {
+                // Add to Today's Tasks list
+                const taskItem = document.createElement('div');
+                taskItem.className = `task-item ${task.completed ? 'task-completed' : ''}`;
+                taskItem.dataset.id = task.id;
+
+                taskItem.innerHTML = `
+                    <div class="task-number">${index + 1}</div>
+                    <input type="text" class="task-input" value="${task.text}" placeholder="Enter task description" data-id="${task.id}">
+                    <input type="text" class="time-input" value="${task.time}" placeholder="HH:MM" data-id="${task.id}">
+                    <button class="delete-task" data-id="${task.id}"><i class="fas fa-trash"></i></button>
+                `;
+
+                tasksList.appendChild(taskItem);
+
+                // Add to Task Completion grid
+                const completionItem = document.createElement('div');
+                completionItem.className = 'completion-item';
+                completionItem.dataset.id = task.id;
+
+                completionItem.innerHTML = `
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="task-${task.id}" ${task.completed ? 'checked' : ''} data-id="${task.id}">
+                    </div>
+                    <div class="task-label">${task.text}</div>
+                    <div class="task-time">${task.time}</div>
+                `;
+
+                completionGrid.appendChild(completionItem);
+            });
+
+            // Add event listeners to task inputs
+            document.querySelectorAll('.task-input').forEach(input => {
+                input.addEventListener('change', updateTaskText);
+                input.addEventListener('blur', updateTaskText);
+                // Prevent zoom on focus for mobile
+                input.addEventListener('focus', () => {
+                    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                        input.style.fontSize = '16px';
+                    }
+                });
+            });
+
+            // Add event listeners to time inputs
+            document.querySelectorAll('.time-input').forEach(input => {
+                // Initialize flatpickr for time selection
+                flatpickr(input, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "H:i",
+                    time_24hr: true,
+                    onChange: updateTaskTime,
+                    disableMobile: true // Use native picker on mobile
+                });
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-task').forEach(button => {
+                button.addEventListener('click', deleteTask);
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    deleteTask(e);
+                });
+            });
+
+            // Add event listeners to completion checkboxes
+            document.querySelectorAll('.completion-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', toggleTaskCompletion);
+                checkbox.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                });
+            });
+
+            // Update empty state
+            updateEmptyState();
+
+            // Update stats
+            updateStats();
+        }
+
+        // Handle month/week change
+        function handlePeriodChange() {
+            // Save current tasks before changing period
+            saveTasksForCurrentPeriod();
+
+            // Update current month and week
+            currentMonth = parseInt(monthSelect.value);
+            currentWeek = parseInt(weekSelect.value);
+
+            // Update period display
+            updatePeriodDisplay();
+
+            // Load tasks for new period
+            loadTasksForCurrentPeriod();
+
+            // Render tasks for new period
+            renderTasks();
+
+            // Set alarms for tasks in new period
+            tasks.forEach(task => {
+                if (!task.completed) {
+                    setAlarmForTask(task);
+                }
+            });
+        }
+
+        // Add a new task
+        function addTask() {
+            // Get the next sequential task number
+            const nextTaskNumber = getNextTaskNumber();
+
+            const newTask = {
+                id: taskIdCounter++,
+                text: `Task ${nextTaskNumber}`, // Always use sequential numbering
+                time: "12:00",
+                completed: false
+            };
+
+            tasks.push(newTask);
+            saveTasksForCurrentPeriod();
+            renderTasks();
+
+            // Set alarm for the new task
+            setAlarmForTask(newTask);
+
+            // Focus on the new task input
+            setTimeout(() => {
+                const newTaskInput = document.querySelector(`.task-input[data-id="${newTask.id}"]`);
+                if (newTaskInput) {
+                    newTaskInput.focus();
+                    newTaskInput.select();
+                }
+            }, 100);
+        }
+
+        // Update task text
+        function updateTaskText(e) {
+            const taskId = parseInt(e.target.dataset.id);
+            const newText = e.target.value.trim();
+
+            if (newText === '') {
+                // Find the task index to get proper number
+                const taskIndex = tasks.findIndex(task => task.id === taskId);
+                e.target.value = `Task ${taskIndex + 1}`;
+                return;
+            }
+
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].text = newText;
+                saveTasksForCurrentPeriod();
+
+                // Also update the completion grid
+                const completionItem = document.querySelector(`.completion-item[data-id="${taskId}"] .task-label`);
+                if (completionItem) {
+                    completionItem.textContent = newText;
+                }
+            }
+        }
+
+        // Update task time
+        function updateTaskTime(selectedDates, dateStr, instance) {
+            const taskId = parseInt(instance.input.dataset.id);
+            const newTime = dateStr;
+
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].time = newTime;
+                saveTasksForCurrentPeriod();
+
+                // Also update the completion grid
+                const completionItem = document.querySelector(`.completion-item[data-id="${taskId}"] .task-time`);
+                if (completionItem) {
+                    completionItem.textContent = newTime;
+                }
+
+                // Clear any existing alarm for this task
+                if (alarmTimeouts[taskId]) {
+                    clearTimeout(alarmTimeouts[taskId]);
+                    delete alarmTimeouts[taskId];
+                }
+
+                // Set new alarm if task is not completed
+                if (!tasks[taskIndex].completed) {
+                    setAlarmForTask(tasks[taskIndex]);
+                }
+            }
+        }
+
+        // Delete a task
+        function deleteTask(e) {
+            const taskId = parseInt(e.currentTarget.dataset.id);
+
+            // Remove from tasks array
+            tasks = tasks.filter(task => task.id !== taskId);
+            saveTasksForCurrentPeriod();
+
+            // Clear alarm if exists
+            if (alarmTimeouts[taskId]) {
+                clearTimeout(alarmTimeouts[taskId]);
+                delete alarmTimeouts[taskId];
+            }
+
+            // Re-render tasks
+            renderTasks();
+        }
+
+        // Toggle task completion
+        function toggleTaskCompletion(e) {
+            const taskId = parseInt(e.target.dataset.id);
+            const isCompleted = e.target.checked;
+
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].completed = isCompleted;
+                saveTasksForCurrentPeriod();
+
+                // Update task item appearance
+                const taskItem = document.querySelector(`.task-item[data-id="${taskId}"]`);
+                if (taskItem) {
+                    if (isCompleted) {
+                        taskItem.classList.add('task-completed');
+
+                        // Clear alarm if task is completed
+                        if (alarmTimeouts[taskId]) {
+                            clearTimeout(alarmTimeouts[taskId]);
+                            delete alarmTimeouts[taskId];
+                        }
+                    } else {
+                        taskItem.classList.remove('task-completed');
+
+                        // Set alarm for the task time
+                        setAlarmForTask(tasks[taskIndex]);
+                    }
+                }
+
+                // Update stats
+                updateStats();
+            }
+        }
+
+        // Set alarm for a task
+        function setAlarmForTask(task) {
+            // Clear existing alarm for this task
+            if (alarmTimeouts[task.id]) {
+                clearTimeout(alarmTimeouts[task.id]);
+            }
+
+            // Parse the time
+            const [hours, minutes] = task.time.split(':').map(Number);
+            const now = new Date();
+            const alarmTime = new Date();
+            alarmTime.setHours(hours, minutes, 0, 0);
+
+            // If the alarm time has already passed today, set it for tomorrow
+            if (alarmTime < now) {
+                alarmTime.setDate(alarmTime.getDate() + 1);
+            }
+
+            const timeUntilAlarm = alarmTime.getTime() - now.getTime();
+
+            // Only set alarm if it's in the future
+            if (timeUntilAlarm > 0) {
+                console.log(`Alarm set for task "${task.text}" at ${task.time} (in ${Math.round(timeUntilAlarm / 1000 / 60)} minutes)`);
+                alarmTimeouts[task.id] = setTimeout(() => {
+                    triggerAlarm(task);
+                }, timeUntilAlarm);
+            } else {
+                console.log(`Cannot set alarm for task "${task.text}" - time has already passed`);
+            }
+        }
+
+        // Trigger alarm for a task
+        function triggerAlarm(task) {
+            console.log(`ALARM TRIGGERED for task: ${task.text} at ${task.time}`);
+
+            // Store the current alarm task
+            currentAlarmTask = task;
+
+            // Show alarm indicator
+            alarmIndicator.style.display = 'block';
+            alarmMessage.innerHTML = `<i class="fas fa-bell"></i> Time for: <strong>${task.text}</strong> (${task.time})`;
+
+            // Play alarm sound
+            playAlarmSound();
+
+            // Show browser notification
+            showBrowserNotification(task);
+
+            // Make sure the alarm indicator is visible
+            alarmIndicator.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Vibrate if supported
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+        }
+
+        // Play alarm sound (simpler version that works in all browsers)
+        function playAlarmSound() {
+            // Stop any existing alarm sound
+            stopAlarmSound();
+
+            try {
+                // Try Web Audio API first
+                if (window.AudioContext || window.webkitAudioContext) {
+                    alarmAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = alarmAudioContext.createOscillator();
+                    const gainNode = alarmAudioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(alarmAudioContext.destination);
+
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(800, alarmAudioContext.currentTime);
+
+                    // Create a pulsing effect
+                    gainNode.gain.setValueAtTime(0.3, alarmAudioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, alarmAudioContext.currentTime + 0.5);
+
+                    oscillator.start();
+                    oscillator.stop(alarmAudioContext.currentTime + 0.5);
+
+                    // Repeat the sound every second
+                    alarmInterval = setInterval(() => {
+                        if (alarmIndicator.style.display === 'block') {
+                            const oscillator2 = alarmAudioContext.createOscillator();
+                            const gainNode2 = alarmAudioContext.createGain();
+
+                            oscillator2.connect(gainNode2);
+                            gainNode2.connect(alarmAudioContext.destination);
+
+                            oscillator2.type = 'sine';
+                            oscillator2.frequency.setValueAtTime(800, alarmAudioContext.currentTime);
+
+                            gainNode2.gain.setValueAtTime(0.3, alarmAudioContext.currentTime);
+                            gainNode2.gain.exponentialRampToValueAtTime(0.01, alarmAudioContext.currentTime + 0.5);
+
+                            oscillator2.start();
+                            oscillator2.stop(alarmAudioContext.currentTime + 0.5);
+                        } else {
+                            stopAlarmSound();
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.log("Web Audio API not supported or blocked:", error);
+                // Fallback: just show the visual alarm
+            }
+        }
+
+        // Stop alarm sound
+        function stopAlarmSound() {
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+
+            if (alarmAudioContext) {
+                alarmAudioContext.close();
+                alarmAudioContext = null;
+            }
+        }
+
+        // Show browser notification
+        function showBrowserNotification(task) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                const notification = new Notification("TaskApex Alarm ⏰", {
+                    body: `Time to complete: ${task.text}`,
+                    icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23667eea"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+                    tag: 'taskapex-alarm',
+                    requireInteraction: true
+                });
+
+                notification.onclick = function () {
+                    window.focus();
+                    this.close();
+                };
+            }
+        }
+
+        // Check for alarms that should have gone off
+        function checkAlarms() {
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentTime = `${currentHours.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
+
+            // Check if any task's alarm time matches current time
+            tasks.forEach(task => {
+                if (!task.completed && task.time === currentTime) {
+                    // Check if alarm for this task is already ringing
+                    if (currentAlarmTask && currentAlarmTask.id === task.id) {
+                        return; // Alarm already ringing for this task
+                    }
+
+                    // Check if alarm was already triggered recently (within last minute)
+                    const lastTriggered = localStorage.getItem(`alarm_${task.id}_last`);
+                    if (lastTriggered) {
+                        const lastTriggerTime = new Date(parseInt(lastTriggered));
+                        const timeSinceLastTrigger = now.getTime() - lastTriggerTime.getTime();
+                        if (timeSinceLastTrigger < 60000) { // Less than 1 minute ago
+                            return; // Don't trigger again
+                        }
+                    }
+
+                    // Trigger alarm and record time
+                    triggerAlarm(task);
+                    localStorage.setItem(`alarm_${task.id}_last`, now.getTime().toString());
+                }
+            });
+        }
+
+        // Snooze alarm for 5 minutes
+        function snoozeAlarm() {
+            if (currentAlarmTask) {
+                // Hide current alarm
+                alarmIndicator.style.display = 'none';
+                stopAlarmSound();
+
+                // Set new alarm for 5 minutes from now
+                const now = new Date();
+                const snoozeTime = new Date(now.getTime() + 5 * 60000); // 5 minutes
+                const hours = snoozeTime.getHours().toString().padStart(2, '0');
+                const minutes = snoozeTime.getMinutes().toString().padStart(2, '0');
+
+                // Update task time
+                const taskIndex = tasks.findIndex(task => task.id === currentAlarmTask.id);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].time = `${hours}:${minutes}`;
+                    saveTasksForCurrentPeriod();
+                    renderTasks();
+
+                    // Show notification
+                    alert(`Alarm snoozed until ${hours}:${minutes}`);
+                }
+
+                currentAlarmTask = null;
+            }
+        }
+
+        // Dismiss alarm
+        function dismissAlarm() {
+            if (currentAlarmTask) {
+                // Hide alarm
+                alarmIndicator.style.display = 'none';
+                stopAlarmSound();
+
+                // Mark task as completed
+                const taskIndex = tasks.findIndex(task => task.id === currentAlarmTask.id);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].completed = true;
+                    saveTasksForCurrentPeriod();
+                    renderTasks();
+                }
+
+                currentAlarmTask = null;
+            }
+        }
+
+        // Test alarm sound
+        function testAlarmSound() {
+            // Create a test task
+            const testTask = {
+                id: 'test',
+                text: 'Test Alarm',
+                time: 'Test'
+            };
+
+            // Show alarm indicator
+            alarmIndicator.style.display = 'block';
+            alarmMessage.innerHTML = '<i class="fas fa-bell"></i> Test Alarm Sound - This is a test';
+
+            // Play test sound
+            playAlarmSound();
+
+            // Vibrate if supported
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+
+            // Auto-dismiss after 3 seconds
+            setTimeout(() => {
+                alarmIndicator.style.display = 'none';
+                stopAlarmSound();
+            }, 3000);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(task => task.completed).length;
+            const pending = total - completed;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            completedTasksElement.textContent = completed;
+            totalTasksElement.textContent = total;
+            completionRateElement.textContent = `${rate}%`;
+            pendingTasksElement.textContent = pending;
+
+            // Update progress chart
+            updateProgressChart(completed, pending);
+        }
+
+        // Initialize progress chart
+        let progressChart;
+        function initProgressChart() {
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+
+            progressChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(231, 76, 60, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw} tasks`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update progress chart data
+        function updateProgressChart(completed, pending) {
+            if (progressChart) {
+                progressChart.data.datasets[0].data = [completed, pending];
+                progressChart.update();
+            }
+        }
+
+        // Event Listeners
+        enterAppBtn.addEventListener('click', () => {
+            // Hide welcome page, show app
+            welcomePage.style.display = 'none';
+            appContainer.style.display = 'block';
+
+            // Initialize the app
+            initApp();
+        });
+
+        addTaskBtn.addEventListener('click', addTask);
+
+        dismissAlarmBtn.addEventListener('click', dismissAlarm);
+
+        snoozeAlarmBtn.addEventListener('click', snoozeAlarm);
+
+        testAlarmBtn.addEventListener('click', testAlarmSound);
+
+        monthSelect.addEventListener('change', handlePeriodChange);
+        weekSelect.addEventListener('change', handlePeriodChange);
+
+        // Allow adding task with Enter key in task input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.classList.contains('task-input')) {
+                addTask();
+            }
+        });
+
+        // Handle window resize for mobile
+        window.addEventListener('resize', () => {
+            adjustForMobile();
+        });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                adjustForMobile();
+            }, 300);
+        });
+
+        // Initialize when page loads
+        window.addEventListener('load', adjustForMobile);
+
+        // Make functions available globally for debugging
+        window.testAlarm = testAlarmSound;
+        window.showAlarm = function (taskText) {
+            triggerAlarm({
+                id: 'debug',
+                text: taskText || 'Debug Alarm',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+        };
+    </script>
+</body>
+
+</html>
